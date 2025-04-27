@@ -1,0 +1,12 @@
+# Ignore binaries
+*.exe
+*.out
+*.o
+
+# Ignore dependency files (Go vendor folders, if you use them later)
+vendor/
+
+# Ignore IDE/editor settings (optional)
+.vscode/
+.idea/
+.DS_Store
