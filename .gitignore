@@ -1,12 +1,21 @@
-# Ignore binaries
+# Logs
+/logs
+*.log
+
+# Node.js
+/frontend/node_modules
+/frontend/dist
+
+# Go Build Files
 *.exe
 *.out
-*.o
+*.test
 
-# Ignore dependency files (Go vendor folders, if you use them later)
-vendor/
+# IDE / Editor settings (optional but recommended)
+/.vscode/
+/.idea/
 
-# Ignore IDE/editor settings (optional)
-.vscode/
-.idea/
+# OS generated files
 .DS_Store
+Thumbs.db
+cd
