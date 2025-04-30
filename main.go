@@ -37,7 +37,6 @@ func main() {
 			})
 		}
 	}()
-
 	startServer(5001)
 	startServer(5002)
 	startServer(5003)
@@ -56,8 +55,16 @@ func main() {
 		lb.ServeProxy(w, r)
 	})
 
+	http.HandleFunc("/status", StatusHandler(lb))
+
+	http.HandleFunc("/logs", LogHandler("./logs/loadbalancer.log"))
+
+	http.HandleFunc("/set-strategy", SetStrategyHandler(lb))
+
+	http.HandleFunc("/get-blocked", BlockedIpsHandler(lb))
+
 	fmt.Println("Load balancer started on port 8080...")
-	if err := http.ListenAndServe(":8080", nil); err != nil {
+	if err := http.ListenAndServe(":8080", CorsMiddleware(http.DefaultServeMux)); err != nil {
 		log.Printf("Load balancer failed %s\n", err)
 	}
 

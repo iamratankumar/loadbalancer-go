@@ -9,12 +9,14 @@ import (
 )
 
 type Balancer struct {
-	servers      []string
-	current      int
-	health       map[string]bool
-	connections  map[string]int
-	strategy     string
-	requestPerIP map[string]int
+	servers           []string
+	current           int
+	health            map[string]bool
+	connections       map[string]int
+	strategy          string
+	requestPerIP      map[string]int
+	totalRequests     int
+	perServerRequests map[string]int
 }
 
 func NewBalancer(servers []string) *Balancer {
@@ -28,12 +30,14 @@ func NewBalancer(servers []string) *Balancer {
 	}
 
 	b := &Balancer{
-		servers:      servers,
-		current:      0,
-		health:       health,
-		connections:  connections,
-		strategy:     "least-connections",
-		requestPerIP: make(map[string]int),
+		servers:           servers,
+		current:           0,
+		health:            health,
+		connections:       connections,
+		strategy:          "least-connections",
+		requestPerIP:      make(map[string]int),
+		totalRequests:     0,
+		perServerRequests: make(map[string]int),
 	}
 
 	go func() {
@@ -92,6 +96,7 @@ func (b *Balancer) ServeProxy(w http.ResponseWriter, r *http.Request) {
 
 	ip := r.RemoteAddr
 	ipOnly := ip
+	b.totalRequests++
 
 	if host, _, err := net.SplitHostPort(ip); err == nil {
 		ipOnly = host
@@ -120,6 +125,7 @@ func (b *Balancer) ServeProxy(w http.ResponseWriter, r *http.Request) {
 		}
 		b.connections[targetServer]++
 		targetURL := targetServer + r.RequestURI
+		b.perServerRequests[targetServer]++
 
 		req, err := http.NewRequest(r.Method, targetURL, r.Body)
 
@@ -183,4 +189,41 @@ func (b *Balancer) StartHealthCheck(intervalSecs int) {
 			time.Sleep(time.Duration(intervalSecs) * time.Second)
 		}
 	}()
+}
+
+// Getter and Setters
+func (b *Balancer) Servers() []string {
+
+	return b.servers
+}
+
+func (b *Balancer) IsHealthy(server string) bool {
+	return b.health[server]
+}
+
+func (b *Balancer) GetConnections(server string) int {
+	return b.connections[server]
+}
+
+func (b *Balancer) GetStrategy() string {
+	return b.strategy
+}
+
+func (b *Balancer) GetBlockedIPs() []string {
+	blocked := []string{}
+
+	for ip, count := range b.requestPerIP {
+		if count > 10 {
+			blocked = append(blocked, ip)
+		}
+	}
+	return blocked
+}
+
+func (b *Balancer) GetTotalRequests() int {
+	return b.totalRequests
+}
+
+func (b *Balancer) GetRequestCount(server string) int {
+	return b.perServerRequests[server]
 }

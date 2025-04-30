@@ -1,0 +1,13 @@
+{
+    "balancerURL": "http://localhost:8080",
+    "allowedOriginsForFrontend":[
+        "http://localhost:3000"
+    ],
+    "servers":[
+        {
+            "address": "http://localhost:5001",
+            "name": "Test Server",
+            "isMock": false
+          }
+    ]
+}
